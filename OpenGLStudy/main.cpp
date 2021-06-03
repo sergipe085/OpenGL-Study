@@ -5,10 +5,15 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <glm\glm.hpp>
+#include <glm\gtc\matrix_transform.hpp>
+#include <glm\gtc\type_ptr.hpp>
+
 //Window dimensions
 const GLint WIDTH = 800, HEIGHT = 600;
+const float toRadians = 3.14159265f / 180.0f;
 
-GLuint VAO, VBO, shader, uniformXMove, uniformYMove;
+GLuint VAO, VBO, shader, uniformModel;
 
 float moveAngle = 0.0f;
 float yPos	    = 0.0f;
@@ -20,12 +25,11 @@ static const char* vShader = "				\
 											\n\
 	layout(location = 0) in vec3 pos;		\n\
 											\n\
-	uniform float xMove;					\n\
-	uniform float yMove;					\n\
+	uniform mat4 model;						\n\
 											\n\
 	void main()								\n\
 	{										\n\
-		gl_Position = vec4(pos.x * 0.1 + xMove, pos.y * 0.1 + yMove, pos.z * 0.1, 1.0);			\n\
+		gl_Position = model * vec4(pos * 0.1, 1.0);			\n\
 	}										\n\
 ";
 
@@ -33,11 +37,13 @@ static const char* vShader = "				\
 static const char* fShader = "				\
 	#version 330							\n\
 											\n\
+	in vec4 gl_FragCoord;										\n\
+											\n\
 	out vec4 colour;							\n\
 											\n\
 	void main()								\n\
 	{										\n\
-		colour = vec4(1.0);					\n\
+		colour = vec4(gl_FragCoord.x, gl_FragCoord.y, gl_FragCoord.z, 1.0f);					\n\
 	}										\n\
 ";
 
@@ -95,8 +101,7 @@ void CompileShader() {
 		return;
 	}
 
-	uniformXMove = glGetUniformLocation(shader, "xMove");
-	uniformYMove = glGetUniformLocation(shader, "yMove");
+	uniformModel = glGetUniformLocation(shader, "model");
 }
 
 void CreateTriangle() {
@@ -177,7 +182,7 @@ int main() {
 
 		xPos = cos(moveAngle) / 2;
 		yPos = sin(moveAngle) / 2;
-		moveAngle += 0.0005f;
+		moveAngle += 0.001f;
 
 		//Clear window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -185,8 +190,12 @@ int main() {
 
 		glUseProgram(shader);
 			
-			glUniform1f(uniformXMove, xPos);
-			glUniform1f(uniformYMove, yPos);
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, glm::vec3(xPos, yPos, 0.0f));
+			model = glm::rotate(model, moveAngle * toRadians * 1000, glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::scale(model, glm::vec3(xPos, yPos, 0.0f));
+
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 
 			glBindVertexArray(VAO);
 				glDrawArrays(GL_TRIANGLES, 0, 3);
