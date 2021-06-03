@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <cmath>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -7,7 +8,11 @@
 //Window dimensions
 const GLint WIDTH = 800, HEIGHT = 600;
 
-GLuint VAO, VBO, shader;
+GLuint VAO, VBO, shader, uniformXMove, uniformYMove;
+
+float moveAngle = 0.0f;
+float yPos	    = 0.0f;
+float xPos		= 0.0f;
 
 //Vertex Shader
 static const char* vShader = "				\
@@ -15,9 +20,12 @@ static const char* vShader = "				\
 											\n\
 	layout(location = 0) in vec3 pos;		\n\
 											\n\
+	uniform float xMove;					\n\
+	uniform float yMove;					\n\
+											\n\
 	void main()								\n\
 	{										\n\
-	gl_Position = vec4(pos * 0.1, 1.0);			\n\
+		gl_Position = vec4(pos.x * 0.1 + xMove, pos.y * 0.1 + yMove, pos.z * 0.1, 1.0);			\n\
 	}										\n\
 ";
 
@@ -86,6 +94,9 @@ void CompileShader() {
 		printf("Error validating shader program: %s\n", eLog);
 		return;
 	}
+
+	uniformXMove = glGetUniformLocation(shader, "xMove");
+	uniformYMove = glGetUniformLocation(shader, "yMove");
 }
 
 void CreateTriangle() {
@@ -155,7 +166,7 @@ int main() {
 	//Setup Viewport size
 	glViewport(0, 0, bufferWidth, bufferHeight);
 
-	//Creating the triangle and comiling shader
+	//Creating the triangle and compiling shader
 	CreateTriangle();
 	CompileShader();
 
@@ -164,11 +175,19 @@ int main() {
 		//Get + Handle user input events
 		glfwPollEvents();
 
+		xPos = cos(moveAngle) / 2;
+		yPos = sin(moveAngle) / 2;
+		moveAngle += 0.0005f;
+
 		//Clear window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glUseProgram(shader);
+			
+			glUniform1f(uniformXMove, xPos);
+			glUniform1f(uniformYMove, yPos);
+
 			glBindVertexArray(VAO);
 				glDrawArrays(GL_TRIANGLES, 0, 3);
 			glBindVertexArray(0);

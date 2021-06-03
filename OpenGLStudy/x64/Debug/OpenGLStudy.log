@@ -1,3 +1,3 @@
 ﻿  main.cpp
-D:\Projects\OpenGL Projects\OpenGL-Study\OpenGLStudy\main.cpp(43,38): warning C4267: '=': conversão de 'size_t' para 'GLint', possível perda de dados
+D:\Projects\OpenGL Projects\OpenGL-Study\OpenGLStudy\main.cpp(51,38): warning C4267: '=': conversão de 'size_t' para 'GLint', possível perda de dados
   OpenGLStudy.vcxproj -> D:\Projects\OpenGL Projects\OpenGL-Study\x64\Debug\OpenGLStudy.exe
